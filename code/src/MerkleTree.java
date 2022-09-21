@@ -1,6 +1,6 @@
-package src;
+package code.src;
 
 public class MerkleTree {
-  
+
 }
 
