@@ -1,5 +1,7 @@
 package code.src;
 
+import java.security.NoSuchAlgorithmException;
+
 public class Node {
     private Node left;
     private Node right;
@@ -27,5 +29,18 @@ public class Node {
     }
     public void setHash(String hash) {
         this.hash = hash;
+    }
+    public void dupe() {
+        new Node(this.left, this.right, this.hash);
+    }
+    public String hash(String str) {
+        String ret = "";
+        try {
+            byte[] arr = GFG2.getSHA(str);
+            ret = GFG2.toHexString(arr);
+        } catch (NoSuchAlgorithmException e) {
+            System.out.println(e);
+        }
+        return ret;
     }
 }
