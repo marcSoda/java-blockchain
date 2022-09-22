@@ -1,13 +1,10 @@
 import java.util.ArrayList;
-import java.util.List;
-import java.util.Arrays;
-import java.security.NoSuchAlgorithmException;
-import java.io.File;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Scanner;
+import java.io.File;
 
 class Node {
     Node left;
@@ -18,9 +15,7 @@ class Node {
         if (left == null && right == null) {
             this.data = hash(data);
         } else {
-            byte[] concat = new byte[left.data.length + right.data.length];
-            for (int i = 0; i < concat.length; ++i)
-                concat[i] = i < left.data.length ? left.data[i] : right.data[i - left.data.length];
+            byte[] concat = concat(left.data, right.data);
             byte[] hash = hash(concat);
             this.data = hash;
         }
@@ -39,59 +34,91 @@ class Node {
         }
     }
 
-	static String toHexString(byte[] hash) {
-		BigInteger number = new BigInteger(1, hash);
-		StringBuilder hexString = new StringBuilder(number.toString(16));
-		while (hexString.length() < 64) hexString.insert(0, '0');
-		return hexString.toString();
-	}
+    static String hexString(byte[] hash) {
+	BigInteger number = new BigInteger(1, hash);
+	StringBuilder hexString = new StringBuilder(number.toString(16));
+	while (hexString.length() < 64) hexString.insert(0, '0');
+        return hexString.toString();
+    }
+
+    static byte[] concat(byte[] l, byte[] r) {
+        byte[] concat = new byte[l.length + r.length];
+        for (int i = 0; i < concat.length; ++i)
+            concat[i] = i < l.length ? l[i] : r[i - l.length];
+        return concat;
+    }
 }
 
 public class MerkleTree {
     Node root;
 
     MerkleTree(byte[][] data) {
-        ArrayList<Node> nodes = new ArrayList<Node>();
-
-        if (data.length % 2 != 0) {
-            byte[][] newData = new byte[data.length + 1][256];
-            newData[newData.length - 1] = data[data.length - 1];
-            data = newData;
-        }
+        ArrayList<Node> leaves = new ArrayList<Node>();
 
         for (byte[] d : data) {
-            Node n = new Node(d, null, null);
-            nodes.add(n);
+            leaves.add(new Node(d, null, null));
         }
 
-        for (int i = 0; i < data.length / 2; i++) {
-            ArrayList<Node> level = new ArrayList<Node>();
-            for (int j = 0; j < nodes.size(); j+=2) {
-                System.out.println(nodes);
-                System.out.println(i + " " + j);
-                Node n = new Node(null, nodes.get(j), nodes.get(j+1));
-                level.add(n);
-            }
-            nodes = level;
+        if (leaves.size() % 2 != 0) {
+            Node last = leaves.get(leaves.size() - 1);
+            leaves.add(new Node(last.data, null, null));
         }
-        this.root = nodes.get(0);
+
+        this.root = this.buildTree(leaves);
+    }
+
+    Node buildTree(ArrayList<Node> nodes) {
+        if (nodes.size() % 2 != 0) {
+            Node last = nodes.get(nodes.size() - 1);
+            nodes.add(new Node(last.data, null, null));
+        }
+
+        if (nodes.size() == 2) {
+            byte[] hash = Node.hash(Node.concat(nodes.get(0).data, nodes.get(1).data));
+            return new Node(hash, nodes.get(0), nodes.get(1));
+        }
+
+        Node left = this.buildTree(new ArrayList<>(nodes.subList(0, (nodes.size()) / 2)));
+        Node right = this.buildTree(new ArrayList<>(nodes.subList((nodes.size()) / 2, nodes.size())));
+        byte[] hash = Node.hash(Node.concat(left.data, right.data));
+        return new Node(hash, left, right);
+    }
+
+    static void printTree(Node node) {
+        if (node != null) {
+            if (node.left != null) {
+                System.out.println("Left: " + Node.hexString(node.left.data));
+                System.out.println("Right: " + Node.hexString(node.right.data));
+            }
+            System.out.println("self: " + Node.hexString(node.data));
+            printTree(node.left);
+            printTree(node.right);
+        }
     }
 
     public static void main(String args[]) {
-        byte[] d0 = Node.hash(("23uhf0f789haw40uh" + "24").getBytes(StandardCharsets.UTF_8));
-        byte[] d1 = Node.hash(("colih34o897hfdq3j" + "908429").getBytes(StandardCharsets.UTF_8));
-        byte[] d2 = Node.hash(("lfkhjsoiufhe4507h" + "99").getBytes(StandardCharsets.UTF_8));
-        byte[] d3 = Node.hash(("lvkjdhglddd589t4f" + "8").getBytes(StandardCharsets.UTF_8));
-        byte[] d4 = Node.hash(("flksjhrfoi4rhfs34" + "123433").getBytes(StandardCharsets.UTF_8));
-        byte[] d5 = Node.hash(("f348937fheo87fwfh" + "23").getBytes(StandardCharsets.UTF_8));
-        byte[] d6 = Node.hash(("dfsufhoety9we484r" + "7").getBytes(StandardCharsets.UTF_8));
-        byte[][] data = new byte[6][];
-        data[0] = d0;
-        data[1] = d1;
-        data[2] = d2;
-        data[3] = d3;
-        data[4] = d4;
-        data[5] = d5;
+        Scanner s;
+        ArrayList<String> parts = new ArrayList<String>();
+        try {
+            s = new Scanner(new File("./input.txt"));
+        } catch (Exception e) {
+            System.out.println("input.txt not found");
+            return;
+        }
+        while (s.hasNext()){
+            parts.add(s.next());
+        }
+        s.close();
+
+        byte[][] data = new byte[parts.size() / 2][];
+
+        for (int i = 0; i < parts.size(); i+=2) {
+            byte[] transConcat = (parts.get(i) + parts.get(i+1)).getBytes(StandardCharsets.UTF_8);
+            data[i/2] = transConcat;
+        }
+
         MerkleTree t = new MerkleTree(data);
+
+	System.out.println(Node.hexString(t.root.data));
     }
 }
