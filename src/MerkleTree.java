@@ -4,7 +4,7 @@ import java.util.Scanner;
 import java.io.File;
 import java.io.Serializable;
 
-class Node implements Serializable {
+class Node {
     Node left;
     Node right;
     byte[] hash;

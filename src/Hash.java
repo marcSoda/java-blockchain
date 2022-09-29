@@ -5,7 +5,8 @@ public class Hash {
     static byte[] hash(byte[] data) {
         try {
             MessageDigest md = MessageDigest.getInstance("SHA-256");
-            return md.digest(data);
+            byte[] hash = md.digest(data);
+            return hash;
         } catch (Exception e) {
             System.out.println("Failed to get instance of sha256");
             return null;
