@@ -1,7 +1,7 @@
 import java.util.ArrayList;
 import java.io.Serializable;
 
-class Node {
+class Node implements Serializable {
     byte[] hash;
     Node left;
     Node right;
@@ -48,39 +48,39 @@ public class MerkleTree implements Serializable {
         return new Node(hash, left, right);
     }
 
-    boolean find(Transaction t) {
-        return find(t, this.root);
-    }
+    // boolean find(Transaction t) {
+    //     return find(t, this.root);
+    // }
 
-    boolean find(Transaction t, Node node) {
+    static boolean find(Transaction t, Node node) {
         if (node == null)
             return false;
         if (node.hash.equals(t.hash))
             return true;
-        return this.find(t, node.left) || this.find(t, node.right);
+        return find(t, node.left) || find(t, node.right);
     }
 
-    ArrayList<byte[]> reqProof(Transaction t) {
-        if (!this.find(t)) {
+    static ArrayList<byte[]> reqProof(Transaction t, Node root) {
+        if (!find(t, root)) {
             System.out.println("Transaction not found");
             return null;
         }
 
         ArrayList<byte[]> proof = new ArrayList<byte[]>();
-        this.buildProof(this.root, t, proof);
-        proof.add(this.root.hash);
+        buildProof(root, t, proof);
+        proof.add(root.hash);
 
         return proof;
     }
 
-    boolean buildProof(Node n, Transaction t, ArrayList<byte[]> proof) {
+    static boolean buildProof(Node n, Transaction t, ArrayList<byte[]> proof) {
         if (n == null)
             return false;
         if (n.hash.equals(t.hash))
             return true;
 
-        boolean foundLeft = this.buildProof(n.left, t, proof);
-        boolean foundRight = this.buildProof(n.right, t, proof);
+        boolean foundLeft = buildProof(n.left, t, proof);
+        boolean foundRight = buildProof(n.right, t, proof);
 
         if (!foundLeft && !foundRight)
             return false;

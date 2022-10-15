@@ -1,4 +1,5 @@
 #! /bin/bash
 rm *.class
+javac MerkleTree.java
 javac Main.java
 

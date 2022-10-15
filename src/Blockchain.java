@@ -1,6 +1,7 @@
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.ListIterator;
 import java.nio.charset.StandardCharsets;
@@ -32,6 +33,43 @@ public class Blockchain {
             prev = Hash.hash(Util.serialize(b.header));
         }
         return true;
+    }
+
+    public POM balance(String address) {
+        ListIterator<Block> dit = this.descendingIterator();
+        Block foundBlock = null;
+        Transaction foundTransaction = null;
+
+        outer:
+        while (dit.hasPrevious()) {
+            Block b = dit.previous();
+            for (Transaction t : b.transactions) {
+                if (address.equals(t.address)) {
+                    foundBlock = b;
+                    foundTransaction = t;
+                    break outer;
+                }
+            }
+        }
+
+        if (foundTransaction == null || foundBlock == null) {
+            System.out.println("Could not find matching transaction.");
+            return null;
+        }
+
+        ArrayList<byte[]> merkleProof = MerkleTree.reqProof(foundTransaction, foundBlock.header.root);
+
+        ArrayList<byte[]> blockHashes = new ArrayList<byte[]>();
+        while (dit.hasNext()) {
+            blockHashes.add(Hash.hash(Util.serialize(dit.next().header)));
+        }
+
+        return new POM(
+                   foundTransaction.balance,
+                   merkleProof,
+                   foundBlock.header,
+                   blockHashes
+        );
     }
 
     public String toString(boolean showLedger) {

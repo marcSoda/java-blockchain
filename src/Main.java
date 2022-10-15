@@ -10,7 +10,11 @@ class Main {
             Block b = new Block(t);
             bc.add(b);
         }
+
         System.out.println(bc.toString(true));
+        System.out.println("PROOF OF MEMBERSHIP: ");
+        POM pom = bc.balance("bc91428771lkjvlkdjvlzdrv78987698f0b110d4");
+        System.out.println(pom);
         FileMan.writeBlockchain(bc, args[0]);
     }
 }

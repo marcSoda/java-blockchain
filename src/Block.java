@@ -7,18 +7,18 @@ public class Block {
     static int difficulty = 12; //1 produces a target of exaclty (2^256)/2
     BlockHeader header;
     Transaction[] transactions;
+    MerkleTree tree;
 
     Block(Transaction[] transactions) {
         this.transactions = transactions;
         this.header = new BlockHeader();
         this.header.timestamp = Instant.now().toString();
-        this.header.root = this.getRootHash();
         this.header.target = BigInteger.valueOf(1).shiftLeft(256 - difficulty);
+        this.header.root = this.generateRoot();
     }
 
-    byte[] getRootHash() {
-        MerkleTree t = new MerkleTree(this.transactions);
-        return t.root.hash;
+    Node generateRoot() {
+        return new MerkleTree(this.transactions).root;
     }
 
     byte[] mine() {
@@ -38,7 +38,7 @@ public class Block {
     }
 
     boolean verify() {
-        if (!Arrays.equals(this.header.root, this.getRootHash()))
+        if (!Arrays.equals(this.header.root.hash, this.generateRoot().hash))
             return false;
         byte[] hash = Hash.hash(Util.serialize(this.header));
         BigInteger intHash = new BigInteger(1, hash);
@@ -57,23 +57,23 @@ public class Block {
         String end = "END BLOCK\n";
         String header = this.header.toString();
         if (!showLedger) return begin + header + end;
-        String transactions = "Transactions:\n";
+        String transactions = "\tTransactions:\n";
         for (Transaction t : this.transactions)
-            transactions += "\t" + t.address + " " + t.balance + "\n";
+            transactions += "\t\t" + t.address + " " + t.balance + "\n";
         return begin + header + transactions + end;
     }
 }
 
 class BlockHeader implements Serializable {
     byte[] prev;
-    byte[] root;
+    Node root;
     String timestamp;
     BigInteger target;
     long nonce;
 
     public String toString() {
         String prev = Hash.hex(this.prev);
-        String root = Hash.hex(this.root);
+        String root = Hash.hex(this.root.hash);
         return "\tBEGIN HEADER\n" +
                "\t\tPrevious Hash:    " + prev      + "\n" +
                "\t\tMerkle Root Hash: " + root      + "\n" +
