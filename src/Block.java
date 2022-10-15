@@ -1,15 +1,15 @@
 import java.math.BigInteger;
 import java.io.Serializable;
 import java.time.Instant;
-import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 
 public class Block {
-    static int difficulty = 1; //This produces a target of exaclty (2^256)/2
+    static int difficulty = 12; //1 produces a target of exaclty (2^256)/2
     BlockHeader header;
-    byte[][] transactions;
+    Transaction[] transactions;
 
-    Block(byte[][] data) {
-        this.transactions = data;
+    Block(Transaction[] transactions) {
+        this.transactions = transactions;
         this.header = new BlockHeader();
         this.header.timestamp = Instant.now().toString();
         this.header.root = this.getRootHash();
@@ -38,6 +38,8 @@ public class Block {
     }
 
     boolean verify() {
+        if (!Arrays.equals(this.header.root, this.getRootHash()))
+            return false;
         byte[] hash = Hash.hash(Util.serialize(this.header));
         BigInteger intHash = new BigInteger(1, hash);
         if (intHash.compareTo(this.header.target) == -1)
@@ -46,20 +48,18 @@ public class Block {
     }
 
     static Block defaultGenesis() {
-        byte[][] transactions = { "Genesis".getBytes(StandardCharsets.UTF_8) };
+        Transaction[] transactions = new Transaction[0];
         return new Block(transactions);
     }
 
     public String toString(boolean showLedger) {
         String begin = "BEGIN BLOCK\n";
-        String end = "\nEND BLOCK\n\n";
+        String end = "END BLOCK\n";
         String header = this.header.toString();
         if (!showLedger) return begin + header + end;
         String transactions = "Transactions:\n";
-        for (byte[] transaction : this.transactions) {
-            transactions += "\t" + new String(transaction, StandardCharsets.UTF_8);
-            transactions += "\n";
-        }
+        for (Transaction t : this.transactions)
+            transactions += "\t" + t.address + " " + t.balance + "\n";
         return begin + header + transactions + end;
     }
 }

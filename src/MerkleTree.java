@@ -1,7 +1,4 @@
 import java.util.ArrayList;
-import java.nio.charset.StandardCharsets;
-import java.util.Scanner;
-import java.io.File;
 import java.io.Serializable;
 
 class Node {
@@ -26,11 +23,11 @@ class Node {
 public class MerkleTree implements Serializable {
     Node root;
 
-    MerkleTree(byte[][] data) {
+    MerkleTree(Transaction[] data) {
         ArrayList<Node> leaves = new ArrayList<Node>();
 
-        for (byte[] d : data) {
-            leaves.add(new Node(d, null, null));
+        for (Transaction d : data) {
+            leaves.add(new Node(d.hash, null, null));
         }
 
         if (leaves.size() % 2 != 0) {
@@ -68,31 +65,5 @@ public class MerkleTree implements Serializable {
             printTree(node.left);
             printTree(node.right);
         }
-    }
-
-    public static void main(String args[]) {
-        Scanner s;
-        ArrayList<String> parts = new ArrayList<String>();
-        try {
-            s = new Scanner(new File("./input.txt"));
-        } catch (Exception e) {
-            System.out.println("input.txt not found");
-            return;
-        }
-        while (s.hasNext()){
-            parts.add(s.next());
-        }
-        s.close();
-
-        byte[][] data = new byte[parts.size() / 2][];
-
-        for (int i = 0; i < parts.size(); i+=2) {
-            byte[] transConcat = (parts.get(i) + parts.get(i+1)).getBytes(StandardCharsets.UTF_8);
-            data[i/2] = transConcat;
-        }
-
-        MerkleTree t = new MerkleTree(data);
-
-        System.out.println(Hash.hex(t.root.hash));
     }
 }

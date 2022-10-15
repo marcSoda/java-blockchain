@@ -4,9 +4,9 @@ class Main {
             System.out.println("No input files");
             return;
         }
-        byte[][][] transactions = FileMan.readTransactionFiles(args);
+        Transaction[][] transactions = FileMan.readTransactionFiles(args);
         Blockchain bc = new Blockchain();
-        for (byte[][] t : transactions) {
+        for (Transaction[] t : transactions) {
             Block b = new Block(t);
             bc.add(b);
         }
