@@ -12,9 +12,14 @@ class Main {
         }
 
         System.out.println(bc.toString(true));
-        System.out.println("PROOF OF MEMBERSHIP: ");
+
+        System.out.println("\n\nValid Blockchain:");
+        System.out.println("\t" + bc.verify());
+
+        System.out.println("\n\nPROOF OF MEMBERSHIP: ");
         POM pom = bc.balance("bc91428771lkjvlkdjvlzdrv78987698f0b110d4");
         System.out.println(pom);
+
         FileMan.writeBlockchain(bc, args[0]);
     }
 }
