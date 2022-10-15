@@ -2,19 +2,12 @@ import java.util.ArrayList;
 import java.io.Serializable;
 
 class Node {
+    byte[] hash;
     Node left;
     Node right;
-    byte[] hash;
 
-    Node(byte[] data, Node left, Node right) {
-        if (left == null && right == null) {
-            this.hash = Hash.hash(data);
-        } else {
-            byte[] concat = Util.concatBytes(left.hash, right.hash);
-            byte[] hash = Hash.hash(concat);
-            this.hash = hash;
-        }
-
+    Node(byte[] hash, Node left, Node right) {
+        this.hash = hash;
         this.left = left;
         this.right = right;
     }
@@ -23,11 +16,11 @@ class Node {
 public class MerkleTree implements Serializable {
     Node root;
 
-    MerkleTree(Transaction[] data) {
+    MerkleTree(Transaction[] transactions) {
         ArrayList<Node> leaves = new ArrayList<Node>();
 
-        for (Transaction d : data) {
-            leaves.add(new Node(d.hash, null, null));
+        for (Transaction t : transactions) {
+            leaves.add(new Node(t.hash, null, null));
         }
 
         if (leaves.size() % 2 != 0) {
@@ -55,13 +48,66 @@ public class MerkleTree implements Serializable {
         return new Node(hash, left, right);
     }
 
+    boolean find(Transaction t) {
+        return find(t, this.root);
+    }
+
+    boolean find(Transaction t, Node node) {
+        if (node == null)
+            return false;
+        if (node.hash.equals(t.hash))
+            return true;
+        return this.find(t, node.left) || this.find(t, node.right);
+    }
+
+    ArrayList<byte[]> reqProof(Transaction t) {
+        if (!this.find(t)) {
+            System.out.println("Transaction not found");
+            return null;
+        }
+
+        ArrayList<byte[]> proof = new ArrayList<byte[]>();
+        this.buildProof(this.root, t, proof);
+        proof.add(this.root.hash);
+
+        return proof;
+    }
+
+    boolean buildProof(Node n, Transaction t, ArrayList<byte[]> proof) {
+        if (n == null)
+            return false;
+        if (n.hash.equals(t.hash))
+            return true;
+
+        boolean foundLeft = this.buildProof(n.left, t, proof);
+        boolean foundRight = this.buildProof(n.right, t, proof);
+
+        if (!foundLeft && !foundRight)
+            return false;
+
+        if (foundLeft && foundRight && proof.contains(t.hash))
+            return false;
+
+        if (foundLeft) {
+            proof.add(n.left.hash);
+            proof.add(n.right.hash);
+        } else if (foundRight) {
+            proof.add(n.right.hash);
+            proof.add(n.left.hash);
+        }
+
+        return true;
+    }
+
     static void printTree(Node node) {
         if (node != null) {
+            System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
             if (node.left != null) {
-                System.out.println("Left: " + Hash.hex(node.left.hash));
-                System.out.println("Right: " + Hash.hex(node.right.hash));
+                System.out.println("LEFT: " + Hash.hex(node.left.hash));
+                System.out.println("RIGHT: " + Hash.hex(node.right.hash));
             }
-            System.out.println("self: " + Hash.hex(node.hash));
+            System.out.println("SELF: " + Hash.hex(node.hash));
+            System.out.println("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
             printTree(node.left);
             printTree(node.right);
         }
