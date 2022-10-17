@@ -19,10 +19,10 @@ public class POM {
         print += "Block Header:\n" + blockHeader;
         print += "MerkleProof:\n";
         for (byte[] h: this.merkleProof)
-            print += "\t" + Hash.hex(h) + "\n";
+            print += "\t" + Hash.hashToHex(h) + "\n";
         print += "blockHashes:\n";
         for (byte[] h: this.blockHashes)
-            print += "\t" + Hash.hex(h) + "\n";
+            print += "\t" + Hash.hashToHex(h) + "\n";
         return print;
     }
 }

@@ -108,10 +108,10 @@ public class MerkleTree implements Serializable {
         if (node != null) {
             System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
             if (node.left != null) {
-                System.out.println("LEFT: " + Hash.hex(node.left.hash));
-                System.out.println("RIGHT: " + Hash.hex(node.right.hash));
+                System.out.println("LEFT: " + Hash.hashToHex(node.left.hash));
+                System.out.println("RIGHT: " + Hash.hashToHex(node.right.hash));
             }
-            System.out.println("SELF: " + Hash.hex(node.hash));
+            System.out.println("SELF: " + Hash.hashToHex(node.hash));
             System.out.println("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
             printTree(node.left);
             printTree(node.right);

@@ -16,6 +16,13 @@ public class Blockchain {
         this.add(genesis);
     }
 
+    //Only used for reading blockchains from an output file.
+    Blockchain(ArrayList<Block> blockList) {
+        for (int i = blockList.size()-1; i >= 0; i--) {
+            this.blocks.add(blockList.get(i));
+        }
+    }
+
     public void add(Block block) {
         block.header.prev = lastHash;
         lastHash = block.mine();
@@ -58,7 +65,7 @@ public class Blockchain {
             return null;
         }
 
-        ArrayList<byte[]> merkleProof = MerkleTree.reqProof(foundTransaction, foundBlock.header.root);
+        ArrayList<byte[]> merkleProof = MerkleTree.reqProof(foundTransaction, foundBlock.root);
 
         ArrayList<byte[]> blockHashes = new ArrayList<byte[]>();
         while (dit.hasNext()) {
