@@ -57,9 +57,10 @@ public class Block {
         String end = "END BLOCK\n";
         String header = this.header.toString();
         if (!showLedger) return begin + header + end;
-        String transactions = "\tTransactions:\n";
+        String transactions = "\tBEGIN TRANSACTIONS:\n";
         for (Transaction t : this.transactions)
             transactions += "\t\t" + t.address + " " + t.balance + "\n";
+        transactions += "\tEND TRANSACTIONS:\n";
         return begin + header + transactions + end;
     }
 }
