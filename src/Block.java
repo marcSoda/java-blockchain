@@ -47,11 +47,6 @@ public class Block {
         return false;
     }
 
-    static Block defaultGenesis() {
-        Transaction[] transactions = new Transaction[0];
-        return new Block(transactions);
-    }
-
     public String toString(boolean showLedger) {
         String begin = "BEGIN BLOCK\n";
         String end = "END BLOCK\n";

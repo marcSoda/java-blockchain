@@ -17,6 +17,11 @@ public class MerkleTree implements Serializable {
     Node root;
 
     MerkleTree(Transaction[] transactions) {
+        if (transactions.length == 0) {
+            System.out.println("Fatal Error: A block must have at least one transaction.");
+            System.exit(1);
+        }
+
         ArrayList<Node> leaves = new ArrayList<Node>();
 
         for (Transaction t : transactions) {

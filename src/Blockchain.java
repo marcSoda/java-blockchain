@@ -1,18 +1,19 @@
+import java.math.BigInteger;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.ListIterator;
-import java.nio.charset.StandardCharsets;
 
 public class Blockchain {
-    private byte[] lastHash;
+    private byte[] lastHash = firstHash();
 
     private List<Block> blocks = new LinkedList<Block>();
 
     Blockchain() {
-        lastHash = "0".getBytes(StandardCharsets.UTF_8);
+        Block genesis = defaultGenesis();
+        this.add(genesis);
     }
 
     public void add(Block block) {
@@ -23,7 +24,7 @@ public class Blockchain {
 
     public boolean verify() {
         Iterator<Block> it = this.iterator();
-        byte[] prev = "0".getBytes(StandardCharsets.UTF_8);
+        byte[] prev = firstHash();
         while (it.hasNext()) {
             Block b = it.next();
             if (!Arrays.equals(b.header.prev, prev))
@@ -78,6 +79,16 @@ public class Blockchain {
             print += block.toString(showLedger);
         }
         return print;
+    }
+
+    static byte[] firstHash() {
+        return BigInteger.valueOf(0).toByteArray();
+    }
+
+    static Block defaultGenesis() {
+        Transaction genesisTransaction = new Transaction("Genesis", "0");
+        Transaction[] transactions = { genesisTransaction };
+        return new Block(transactions);
     }
 
     public Iterator<Block> iterator() {
