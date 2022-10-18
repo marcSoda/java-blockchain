@@ -7,23 +7,35 @@ import java.io.IOException;
 import java.math.BigInteger;
 
 public class FileMan {
-    static Transaction[][] readTransactionFiles(String[] fnames) {
-        Transaction[][] transactions = new Transaction[fnames.length][];
-        int count = 0;
-        for (String fname : fnames) {
-            File file = new File(fname);
-            if (!file.exists()) {
-                System.out.println("Fatal error: " + fname + " does not exist");
-                System.exit(1);
+    static Transaction[][] readLedgerFiles(String paths) throws Exception {
+        ArrayList<File> files = new ArrayList<File>();
+        String[] split = paths.split(" ");
+        for (String path : split) {
+            try {
+                File file = new File(path);
+                if (!file.exists()) {
+                    throw new Exception("Error: " + path + " does not exist");
+                }
+                if (file.isDirectory()) {
+                    for (File f : file.listFiles()) {
+                        files.add(f);
+                    }
+                } else {
+                    files.add(file);
+                }
+            } catch (Exception e) {
+                throw new Exception("Error: when reading from " + path);
             }
+        }
+        Transaction[][] transactions = new Transaction[files.size()][];
+        int count = 0;
+        for (File file : files) {
             try {
                 Scanner s;
                 try {
                     s = new Scanner(file);
                 } catch (Exception e) {
-                    System.out.println("Fatal error: failed to initialize scanner for" + fname);
-                    System.exit(1);
-                    return null;
+                    throw new Exception("Error: failed to initialize scanner for " + file.getName());
                 }
 
                 Transaction[] data = getLedger(s);
@@ -32,8 +44,7 @@ public class FileMan {
                 transactions[count] = data;
                 count++;
             } catch (Exception e) {
-                System.out.println("Fatal error: " + fname + " is an invalid transaction list");
-                System.exit(1);
+                throw new Exception("Error " + file.getName() + " is an invalid ledger");
             }
         }
         return transactions;
@@ -48,6 +59,8 @@ public class FileMan {
             lines.add(l);
         }
 
+        lines.sort(String.CASE_INSENSITIVE_ORDER);
+
         Transaction[] ledger = new Transaction[lines.size()];
         for (int i = 0; i < lines.size(); i++) {
             String[] split = lines.get(i).split(" ");
@@ -57,7 +70,29 @@ public class FileMan {
         return ledger;
     }
 
-    static void writeBlockchain(Blockchain bc, String fname) {
+    static String getFirstInputName(String paths) throws Exception {
+        String[] split = paths.split(" ");
+        for (String path : split) {
+            try {
+                File file = new File(path);
+                if (!file.exists()) {
+                    throw new Exception("Error: " + path + " does not exist");
+                }
+                if (file.isDirectory()) {
+                    for (File f : file.listFiles()) {
+                        return f.getName();
+                    }
+                } else {
+                    return file.getName();
+                }
+            } catch (Exception e) {
+                throw new Exception("Error: when reading from " + path);
+            }
+        }
+        throw new Exception("Unable to find filename");
+    }
+
+    static void writeBlockchain(Blockchain bc, String fname) throws Exception {
         int firstIdx = 0;
         if (fname.contains("/"))
             firstIdx = fname.lastIndexOf('/') + 1;
@@ -76,12 +111,11 @@ public class FileMan {
             }
             w.close();
         } catch (IOException e) {
-            System.out.println("Fatal error: IOException when writing blockchain");
-            System.exit(1);
+            throw new Exception("Error: IOException when writing blockchain");
         }
     }
 
-    static Blockchain readBlockchain(String path) {
+    static Blockchain readBlockchain(String path) throws Exception {
         ArrayList<Block> bl = new ArrayList<Block>();
         try {
             Scanner s = new Scanner(new File(path));
@@ -90,18 +124,15 @@ public class FileMan {
             }
             s.close();
         } catch (Exception e) {
-            System.out.println("Failed to read blockchain file.");
-            System.out.println(e);
-            System.exit(1);
+            throw new Exception("Failed to read blockchain file.");
         }
         return new Blockchain(bl);
     }
 
-    private static Block readBlock(Scanner s) {
+    private static Block readBlock(Scanner s) throws Exception {
         String l = s.nextLine().trim();
         if (!l.equals("BEGIN BLOCK")) {
-            System.out.println("Fatal: Bad block: Could not find beginning of block.");
-            System.exit(1);
+            throw new Exception("Error: Bad block: Could not find beginning of block.");
         }
         while (s.hasNextLine()) {
             l = s.nextLine().trim();
@@ -131,18 +162,15 @@ public class FileMan {
                         head.nonce = Long.parseLong(split[1]);
                         break;
                     default:
-                        System.out.println("Fatal Error when parsing block header.");
-                        System.exit(1);
+                        throw new Exception("Error when parsing block header.");
                 }
             }
             if (!s.nextLine().trim().equals("BEGIN TRANSACTIONS")) {
-                System.out.println("Fatal Error: Bad Block: Could not find beginning of ledger.");
-                System.exit(1);
+                throw new Exception("Error: Bad Block: Could not find beginning of ledger.");
             }
             Transaction[] ledger = getLedger(s);
             if (!s.nextLine().trim().equals("END BLOCK")) {
-                System.out.println("Fatal Error: Bad Block: Could not find end of block.");
-                System.exit(1);
+                throw new Exception("Error: Bad Block: Could not find end of block.");
             }
 
             return new Block(head, ledger);

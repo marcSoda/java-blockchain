@@ -53,15 +53,12 @@ public class MerkleTree implements Serializable {
         return new Node(hash, left, right);
     }
 
-    // boolean find(Transaction t) {
-    //     return find(t, this.root);
-    // }
-
     static boolean find(Transaction t, Node node) {
         if (node == null)
             return false;
-        if (node.hash.equals(t.hash))
+        if (node.hash.equals(t.hash)) {
             return true;
+        }
         return find(t, node.left) || find(t, node.right);
     }
 

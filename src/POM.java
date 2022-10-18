@@ -1,5 +1,6 @@
 import java.util.ArrayList;
 
+//Struct containing proof of membership data
 public class POM {
     String balance;
     ArrayList<byte[]> merkleProof;

@@ -9,7 +9,7 @@ import java.util.ListIterator;
 public class Blockchain {
     private byte[] lastHash = firstHash();
 
-    private List<Block> blocks = new LinkedList<Block>();
+    private List<Block> chain = new LinkedList<Block>();
 
     Blockchain() {
         Block genesis = defaultGenesis();
@@ -19,14 +19,14 @@ public class Blockchain {
     //Only used for reading blockchains from an output file.
     Blockchain(ArrayList<Block> blockList) {
         for (int i = blockList.size()-1; i >= 0; i--) {
-            this.blocks.add(blockList.get(i));
+            this.chain.add(blockList.get(i));
         }
     }
 
     public void add(Block block) {
         block.header.prev = lastHash;
         lastHash = block.mine();
-        blocks.add(block);
+        chain.add(block);
     }
 
     public boolean verify() {
@@ -82,7 +82,7 @@ public class Blockchain {
 
     public String toString(boolean showLedger) {
         String print = "";
-        for (Block block : this.blocks) {
+        for (Block block : this.chain) {
             print += block.toString(showLedger);
         }
         return print;
@@ -98,11 +98,15 @@ public class Blockchain {
         return new Block(transactions);
     }
 
+    public List<Block> getChain() {
+        return this.chain;
+    }
+
     public Iterator<Block> iterator() {
-        return blocks.iterator();
+        return chain.iterator();
     }
 
     public ListIterator<Block> descendingIterator() {
-        return this.blocks.listIterator(this.blocks.size());
+        return this.chain.listIterator(this.chain.size());
     }
 }

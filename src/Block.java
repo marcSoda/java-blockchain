@@ -4,14 +4,14 @@ import java.time.Instant;
 import java.util.Arrays;
 
 public class Block {
-    static int difficulty = 12; //1 produces a target of exaclty (2^256)/2
+    static int difficulty = 1; //1 produces a target of exaclty (2^256)/2
     BlockHeader header;
     Transaction[] transactions;
     Node root;
 
     Block(Transaction[] transactions) {
-        this.transactions = transactions;
         this.header = new BlockHeader();
+        this.transactions = transactions;
         this.header.timestamp = Instant.now().toString();
         this.header.target = BigInteger.valueOf(1).shiftLeft(256 - difficulty);
         this.root = this.generateRoot();
@@ -22,6 +22,7 @@ public class Block {
     Block(BlockHeader header, Transaction[] transactions) {
         this.header = header;
         this.transactions = transactions;
+        this.root = this.generateRoot();
     }
 
     Node generateRoot() {

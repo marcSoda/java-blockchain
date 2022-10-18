@@ -20,7 +20,7 @@ public class Hash {
         return hexStringBuffer.toString();
     }
 
-    public static byte[] hexToHash(String hexString) {
+    static byte[] hexToHash(String hexString) {
         if (hexString.length() % 2 == 1) {
             throw new IllegalArgumentException(
             "Invalid hexadecimal String supplied.");
